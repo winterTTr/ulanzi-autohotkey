@@ -16,8 +16,8 @@
 - Most handlers display a dialog identifying the control and action. Top-left
   and top-right double clicks instead switch Windows virtual desktops left and
   right after the triggering shortcut's keys are released. Their single
-  clicks run VS Code view commands only when VS Code is active. Top-middle
-  single click opens the main VS Code Copilot Chat view, while double click
+  clicks run VS Code view commands only when the pointer is over VS Code.
+  Top-middle single click opens the main VS Code Copilot Chat view, while double click
   activates an existing Microsoft Teams window and sends Ctrl + Shift + M to
   toggle microphone mute, leaving Teams in front; it does not launch Teams.
   Top-middle hold moves the last-focused panel Chat session into a new
@@ -25,6 +25,25 @@
   Replace other placeholders with real actions as requested, retaining clear
   labels for the physical control and action.
 - Do not assume other device controls have bindings in this project.
+
+## Targeting and focus
+
+- For non-global actions, capture the window under the pointer at the start of
+  the hotkey, before waiting for device key release. Identify its process
+  without activating it. Activate and confirm that window only if the chosen
+  action requires keyboard focus; do not send to the previously active window
+  if activation fails. A hovered window is not the same as a hovered control
+  or selected item: activation does not click or select anything.
+- VS Code view/Chat/Copy Relative Path actions and copy/paste target the hovered
+  window and require activation before sending keys. Dial turns zoom only
+  when the pointer is over VS Code or Windows Terminal; otherwise they send
+  global volume keys without changing focus, even over Teams. Desktop switching
+  is global; Teams mute explicitly finds and activates Teams independently of
+  pointer position. Placeholder dialogs do not need activation.
+- Validate pointer-over-background-app targeting, nonmatching-window fallbacks,
+  and activation failures with the real D100H on Windows. The user confirmed
+  the pointer-targeting implementation works as expected; individual edge-case
+  test results were not reported.
 
 ## Device-generated key events
 
@@ -56,15 +75,17 @@
   binding record goes to the common handler. Add a function object in its
   `action` field for a custom action; otherwise the handler shows the usual
   dialog. Action functions accept the binding record containing `hotkey`,
-  `triggerKey`, `button`, and `gesture`; existing actions may also use fields
-  such as `direction`. When editing the map, preserve the visual alignment of
-  control names, gesture keys, `hotkey` values, and `action` fields so the
+  `triggerKey`, `button`, and `gesture`, and a separate captured hovered window
+  ID argument; existing actions may also use fields such as `direction`. When
+  editing the map, preserve the visual alignment of control names, gesture
+  keys, `hotkey` values, and `action` fields so the
   device-to-shortcut-to-implementation flow remains easy to scan.
-- Right Side 1/2 single clicks send Ctrl+C/Ctrl+V to the active app. Right Side
-  1 double click uses VS Code's Command Palette to run Copy Relative Path
-  only while VS Code is active; otherwise it keeps the placeholder dialog.
-- Top-left/top-right singles send F18/F19 only while VS Code is active;
-  otherwise they keep the default dialogs. Four VS Code user keybindings in
+- Right Side 1/2 single clicks send Ctrl+C/Ctrl+V to the hovered window after
+  activating it. Right Side 1 double click uses VS Code's Command Palette to
+  run Copy Relative Path only while the pointer is over VS Code; otherwise it
+  keeps the placeholder dialog.
+- Top-left/top-right singles send F18/F19 only while the pointer is over VS
+  Code; otherwise they keep the default dialogs. Four VS Code user keybindings in
   `README.md` use `when` conditions to toggle Explorer/Tasks in sync with
   VS Code's actual view state. AutoHotkey cannot read VS Code's `when` keys
   outside the IDE. The Tasks view needs the `task.vscode-task` extension and
@@ -85,10 +106,10 @@
   palette shortcut.
 - The five dial gestures send bare F13 through F17 in order; plain turns
   use `F14` for zoom out (left) and `F16` for zoom in (right)
-  when VS Code or Windows Terminal is active. VS Code uses Ctrl+= / Ctrl+-
-  for whole-interface zoom; Windows Terminal uses Ctrl+Numpad+ /
-  Ctrl+Numpad- for font-size zoom. With neither app active, left and right
-  send Volume_Down / Volume_Up to adjust system volume with the Windows
+  when the pointer is over VS Code or Windows Terminal. VS Code uses Ctrl+= /
+  Ctrl+- for whole-interface zoom; Windows Terminal uses Ctrl+Numpad+ /
+  Ctrl+Numpad- for font-size zoom. With neither app under the pointer, left
+  and right send Volume_Down / Volume_Up to adjust system volume with the Windows
   overlay. The earlier Ctrl+Alt+Shift+2/4 mapping emitted stray printable
   digits during rapid turns, and Ctrl+Alt+Shift+F13-F17 still triggered app
   shortcuts as modifiers overlapped. With bare F13-F17, the media-key sends

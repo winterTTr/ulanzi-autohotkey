@@ -49,12 +49,13 @@ Win + Ctrl + Right Arrow respectively, instead of showing a dialog. They wait
 until the triggering keys are released before sending the Windows shortcut,
 so the incoming Ctrl + Alt + Shift modifiers do not overlap it.
 
-When VS Code is active, top-left single click (Ctrl + Alt + Shift + F1)
-switches the Explorer view open/closed; top-right single click
+When the pointer is over VS Code, top-left single click
+(Ctrl + Alt + Shift + F1) switches the Explorer view open/closed; top-right single click
 (Ctrl + Alt + Shift + F7) switches the `task.vscode-task` extension's Tasks
-view open/closed. Outside VS Code, both still show their placeholder dialogs.
-The script sends F18 or F19 to VS Code, which needs these context-aware
-keybindings in the **user** Keyboard Shortcuts JSON:
+view open/closed. With the pointer outside VS Code, both still show their
+placeholder dialogs. The script activates the hovered VS Code window and
+sends F18 or F19. VS Code needs these context-aware keybindings in the
+**user** Keyboard Shortcuts JSON:
 
 ```jsonc
 {
@@ -87,41 +88,54 @@ The `task.vscode-task` extension must be installed. These shortcuts do not
 depend on any personal F1/F3 mappings.
 
 Top-middle single click (Ctrl + Alt + Shift + F4) opens or focuses the main
-Copilot Chat view in VS Code with **Chat: Open Chat** via the Command Palette.
-Outside VS Code, it still shows the placeholder dialog.
+Copilot Chat view in the VS Code window under the pointer with **Chat: Open
+Chat** via the Command Palette. With the pointer outside VS Code, it still
+shows the placeholder dialog.
 Top-middle double click (Ctrl + Alt + Shift + F5) finds an open Microsoft
 Teams window (new or classic Teams), activates it, and sends Ctrl + Shift + M
-to toggle microphone mute during a Teams meeting. It leaves Teams in front.
+to toggle microphone mute during a Teams meeting, regardless of pointer
+position. It leaves Teams in front.
 If no Teams window is open or it cannot be activated, it shows a message
 instead of sending the shortcut to another app. Teams is not launched
 automatically.
 Top-middle hold (Ctrl + Alt + Shift + F6) runs **Chat: Move Chat into New
-Window** in VS Code to move the last-focused panel Chat conversation into a
-separate window. Open the Chat view (for example, with top-middle single
-click) before using it; if there is no panel Chat session to move, VS Code may
-open a new Chat session in the window instead. Outside VS Code, it shows the
-placeholder dialog. This command uses the English Command Palette label and
-the default Ctrl + Shift + P shortcut.
+Window** in the hovered VS Code window to move the last-focused panel Chat
+conversation into a separate window. Open the Chat view (for example, with
+top-middle single click) before using it; if there is no panel Chat session to
+move, VS Code may open a new Chat session in the window instead. With the
+pointer outside VS Code, it shows the placeholder dialog. This command uses
+the English Command Palette label and the default Ctrl + Shift + P shortcut.
 
 Right Side 1 single click (Ctrl + Alt + Shift + I) sends Ctrl + C to copy in
-the active app. Right Side 2 single click (Ctrl + Alt + Shift + J) sends
-Ctrl + V to paste in the active app. Right Side 1 double click
+the window under the pointer. Right Side 2 single click
+(Ctrl + Alt + Shift + J) sends Ctrl + V to paste there. Both first activate
+the hovered window; they do not click or select whatever is under the pointer,
+so the app's existing keyboard focus and selection determine what is copied
+or where text is pasted. Right Side 1 double click
 (Ctrl + Alt + Shift + O) copies the relative path of the selected Explorer
-file or active editor file **when VS Code is active**; outside VS Code it
-still shows the placeholder dialog. It opens VS Code's Command Palette
-(Ctrl + Shift + P) and runs **Copy Relative Path**; no custom VS Code
+file or active editor file **when the pointer is over VS Code**; otherwise it
+still shows the placeholder dialog. It activates that VS Code window, opens
+its Command Palette (Ctrl + Shift + P), and runs **Copy Relative Path**; no custom VS Code
 keybinding is needed. This uses the English command name and assumes VS Code's
 default Command Palette shortcut is available.
 
-Turning the dial left (F14) zooms **out** when VS Code or Windows Terminal is
-active; turning it right (F16) zooms
-**in**. VS Code zooms its entire interface (Ctrl + = / Ctrl + -), while
-Windows Terminal changes terminal font size (Ctrl + Numpad+ / Ctrl + Numpad-).
-When neither app is active, a left turn lowers Windows system volume and a
-right turn raises it using Windows volume keys, which also display the volume
-overlay. Hold-and-turn actions are still placeholders. The unmodified F13-F17
-mapping avoids the overlapping modifier sequences and stray printable number
-keys observed during rapid turns.
+Turning the dial left (F14) zooms **out** when the pointer is over VS Code or
+Windows Terminal; turning it right (F16) zooms **in**. The script identifies
+the app under the pointer without changing focus, then activates it only for
+zoom. VS Code zooms its entire interface (Ctrl + = / Ctrl + -), while Windows
+Terminal changes terminal font size (Ctrl + Numpad+ / Ctrl + Numpad-). When the
+pointer is over any other window (including Teams), a left turn lowers Windows
+system volume and a right turn raises it using Windows volume keys, without
+changing the focused window. These keys also display the volume overlay.
+Hold-and-turn actions are still placeholders. The unmodified F13-F17 mapping
+avoids the overlapping modifier sequences and stray printable number keys
+observed during rapid turns.
+
+App-specific actions capture the window under the pointer when the device
+shortcut fires, then wait for its keys to be released before activating the
+target and sending keys. They do not click the pointed-at item. If activation
+fails, the action is not sent to the previously focused window. Desktop
+switching and Teams mute do not use the hovered window.
 
 The repeated Left Side 1 mapping in the original design is listed once here.
 Other device controls are not mapped yet. These are ordinary Windows

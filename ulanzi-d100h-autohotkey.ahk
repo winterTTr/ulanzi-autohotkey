@@ -61,33 +61,40 @@ for button, gestures in DeviceBindings {
 }
 
 HandleDeviceHotkey(binding, *) {
+    ; Capture the target before waiting so pointer movement cannot retarget this gesture.
+    MouseGetPos(, , &hoveredWindow)
     WaitForDeviceShortcutRelease(binding.triggerKey)
     if binding.HasOwnProp("action")
-        binding.action.Call(binding)
+        binding.action.Call(binding, hoveredWindow)
     else
         ShowKeyPress(binding)
 }
 
-SwitchDesktop(binding) {
+SwitchDesktop(binding, *) {
     SendInput("#^{" binding.direction "}")
 }
 
-SendShortcut(binding) {
-    SendInput(binding.shortcut)
+SendShortcut(binding, hoveredWindow) {
+    if ActivateHoveredWindow(hoveredWindow)
+        SendInput(binding.shortcut)
 }
 
-SendVSCodeViewToggle(binding) {
-    if IsVSCodeActive()
-        SendInput(binding.shortcut)
+SendVSCodeViewToggle(binding, hoveredWindow) {
+    if IsVSCodeProcess(GetHoveredWindowProcess(hoveredWindow)) {
+        if ActivateHoveredWindow(hoveredWindow)
+            SendInput(binding.shortcut)
+    }
     else
         ShowKeyPress(binding)
 }
 
-RunVSCodeCommand(binding) {
-    if !IsVSCodeActive() {
+RunVSCodeCommand(binding, hoveredWindow) {
+    if !IsVSCodeProcess(GetHoveredWindowProcess(hoveredWindow)) {
         ShowKeyPress(binding)
         return
     }
+    if !ActivateHoveredWindow(hoveredWindow)
+        return
 
     ; The palette preserves VS Code's editor/Explorer context for Copy Relative Path.
     SendInput("^+p")
@@ -95,20 +102,45 @@ RunVSCodeCommand(binding) {
     SendInput("{Enter}")
 }
 
-HandleDialTurn(binding) {
-    if IsVSCodeActive()
-        SendInput(binding.direction = "left" ? "^-" : "^=")
-    else if WinActive("ahk_exe WindowsTerminal.exe") || WinActive("ahk_exe WindowsTerminalPreview.exe")
-        SendInput(binding.direction = "left" ? "^{NumpadSub}" : "^{NumpadAdd}")
+HandleDialTurn(binding, hoveredWindow) {
+    processName := GetHoveredWindowProcess(hoveredWindow)
+    if IsVSCodeProcess(processName) {
+        if ActivateHoveredWindow(hoveredWindow)
+            SendInput(binding.direction = "left" ? "^-" : "^=")
+    }
+    else if processName = "WindowsTerminal.exe" || processName = "WindowsTerminalPreview.exe" {
+        if ActivateHoveredWindow(hoveredWindow)
+            SendInput(binding.direction = "left" ? "^{NumpadSub}" : "^{NumpadAdd}")
+    }
     else
         SendInput(binding.direction = "left" ? "{Volume_Down}" : "{Volume_Up}")
 }
 
-IsVSCodeActive() {
-    return WinActive("ahk_exe Code.exe") || WinActive("ahk_exe Code - Insiders.exe")
+GetHoveredWindowProcess(hoveredWindow) {
+    if !hoveredWindow || !WinExist("ahk_id " hoveredWindow)
+        return ""
+    return WinGetProcessName("ahk_id " hoveredWindow)
 }
 
-ToggleTeamsMute(binding) {
+IsVSCodeProcess(processName) {
+    return processName = "Code.exe" || processName = "Code - Insiders.exe"
+}
+
+ActivateHoveredWindow(hoveredWindow) {
+    if !hoveredWindow || !WinExist("ahk_id " hoveredWindow) {
+        MsgBox("The window under the cursor is no longer available; action was not sent.", "Ulanzi D100H")
+        return false
+    }
+    if !WinActive("ahk_id " hoveredWindow)
+        WinActivate("ahk_id " hoveredWindow)
+    if !WinWaitActive("ahk_id " hoveredWindow, , 2) {
+        MsgBox("Could not activate the window under the cursor; action was not sent.", "Ulanzi D100H")
+        return false
+    }
+    return true
+}
+
+ToggleTeamsMute(binding, *) {
     ; "ahk_exe" is AutoHotkey's window filter for the owning process executable.
     ; WinExist finds a visible ms-teams.exe window and returns its HWND, or 0.
     teamsWindow := WinExist("ahk_exe ms-teams.exe")
