@@ -12,13 +12,13 @@ the control and gesture. Configure the device's gestures separately:
 
 | Ulanzi control | Gesture | Windows hotkey | Implementation |
 | --- | --- | --- | --- |
-| Top left | Single click | Ctrl + Alt + Shift + F1 | Toggle VS Code Explorer (otherwise dialog) |
+| Top left | Single click | Ctrl + Alt + Shift + F1 | Toggle VS Code Explorer / previous Windows Terminal tab (otherwise dialog) |
 | Top left | Double click | Ctrl + Alt + Shift + F2 | Switch desktop left |
 | Top left | Hold | Ctrl + Alt + Shift + F3 | Dialog |
 | Top middle | Single click | Ctrl + Alt + Shift + F4 | Open VS Code Chat (otherwise dialog) |
 | Top middle | Double click | Ctrl + Alt + Shift + F5 | Toggle Teams mute |
 | Top middle | Hold | Ctrl + Alt + Shift + F6 | Move VS Code Chat into new window (otherwise dialog) |
-| Top right | Single click | Ctrl + Alt + Shift + F7 | Toggle VS Code Tasks (otherwise dialog) |
+| Top right | Single click | Ctrl + Alt + Shift + F7 | Toggle VS Code Tasks / next Windows Terminal tab (otherwise dialog) |
 | Top right | Double click | Ctrl + Alt + Shift + F8 | Switch desktop right |
 | Top right | Hold | Ctrl + Alt + Shift + F9 | Dialog |
 | Left side 1 | Single click | Ctrl + Alt + Shift + Q | Dialog |
@@ -52,10 +52,14 @@ so the incoming Ctrl + Alt + Shift modifiers do not overlap it.
 When the pointer is over VS Code, top-left single click
 (Ctrl + Alt + Shift + F1) switches the Explorer view open/closed; top-right single click
 (Ctrl + Alt + Shift + F7) switches the `task.vscode-task` extension's Tasks
-view open/closed. With the pointer outside VS Code, both still show their
-placeholder dialogs. The script activates the hovered VS Code window and
-sends F18 or F19. VS Code needs these context-aware keybindings in the
-**user** Keyboard Shortcuts JSON:
+view open/closed. When the pointer is over Windows Terminal (stable or
+Preview), top-left single click switches to the previous tab (Ctrl + Shift +
+Tab), and top-right single click switches to the next tab (Ctrl + Tab).
+The script activates the hovered window before sending its shortcut; it does
+not target VS Code's integrated terminal tabs. With the pointer outside VS
+Code and Windows Terminal, both still show their placeholder dialogs.
+For VS Code, the script sends F18 or F19. VS Code needs these context-aware
+keybindings in the **user** Keyboard Shortcuts JSON:
 
 ```jsonc
 {

@@ -16,7 +16,8 @@
 - Most handlers display a dialog identifying the control and action. Top-left
   and top-right double clicks instead switch Windows virtual desktops left and
   right after the triggering shortcut's keys are released. Their single
-  clicks run VS Code view commands only when the pointer is over VS Code.
+  clicks run VS Code view commands when the pointer is over VS Code, or switch
+  Windows Terminal tabs when the pointer is over Windows Terminal.
   Top-middle single click opens the main VS Code Copilot Chat view, while double click
   activates an existing Microsoft Teams window and sends Ctrl + Shift + M to
   toggle microphone mute, leaving Teams in front; it does not launch Teams.
@@ -34,9 +35,10 @@
   action requires keyboard focus; do not send to the previously active window
   if activation fails. A hovered window is not the same as a hovered control
   or selected item: activation does not click or select anything.
-- VS Code view/Chat/Copy Relative Path actions and copy/paste target the hovered
-  window and require activation before sending keys. Dial turns zoom only
-  when the pointer is over VS Code or Windows Terminal; otherwise they send
+- VS Code view/Chat/Copy Relative Path actions, Windows Terminal tab switching,
+  and copy/paste target the hovered window and require activation before
+  sending keys. Dial turns zoom only when the pointer is over VS Code or
+  Windows Terminal; otherwise they send
   global volume keys without changing focus, even over Teams. Desktop switching
   is global; Teams mute explicitly finds and activates Teams independently of
   pointer position. Placeholder dialogs do not need activation.
@@ -84,8 +86,12 @@
   activating it. Right Side 1 double click uses VS Code's Command Palette to
   run Copy Relative Path only while the pointer is over VS Code; otherwise it
   keeps the placeholder dialog.
-- Top-left/top-right singles send F18/F19 only while the pointer is over VS
-  Code; otherwise they keep the default dialogs. Four VS Code user keybindings in
+- Top-left/top-right singles send F18/F19 while the pointer is over VS Code,
+  or Ctrl+Shift+Tab / Ctrl+Tab for previous/next tab while over Windows
+  Terminal (stable or Preview); otherwise they keep the default dialogs.
+  Tab routing, release ordering, fallbacks, and activation failures passed
+  tests with mocked Windows APIs; physical-device verification is still needed.
+  Four VS Code user keybindings in
   `README.md` use `when` conditions to toggle Explorer/Tasks in sync with
   VS Code's actual view state. AutoHotkey cannot read VS Code's `when` keys
   outside the IDE. The Tasks view needs the `task.vscode-task` extension and

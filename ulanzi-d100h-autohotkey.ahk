@@ -7,7 +7,7 @@ InstallKeybdHook()
 ; A missing action uses the default dialog.
 DeviceBindings := Map(
     "Top left",     Map(
-        "single click",        {hotkey: "^!+F1",   action: SendVSCodeViewToggle, shortcut: "{F18}"},
+        "single click",        {hotkey: "^!+F1",   action: HandleTopSingleClick, shortcut: "{F18}", terminalShortcut: "^+{Tab}"},
         "double click",        {hotkey: "^!+F2",   action: SwitchDesktop,        direction: "Left"},
         "hold",                {hotkey: "^!+F3"}
     ),
@@ -17,7 +17,7 @@ DeviceBindings := Map(
         "hold",                {hotkey: "^!+F6",   action: RunVSCodeCommand,     command: "Chat: Move Chat into New Window"}
     ),
     "Top right",    Map(
-        "single click",        {hotkey: "^!+F7",   action: SendVSCodeViewToggle, shortcut: "{F19}"},
+        "single click",        {hotkey: "^!+F7",   action: HandleTopSingleClick, shortcut: "{F19}", terminalShortcut: "^{Tab}"},
         "double click",        {hotkey: "^!+F8",   action: SwitchDesktop,        direction: "Right"},
         "hold",                {hotkey: "^!+F9"}
     ),
@@ -79,13 +79,18 @@ SendShortcut(binding, hoveredWindow) {
         SendInput(binding.shortcut)
 }
 
-SendVSCodeViewToggle(binding, hoveredWindow) {
-    if IsVSCodeProcess(GetHoveredWindowProcess(hoveredWindow)) {
-        if ActivateHoveredWindow(hoveredWindow)
-            SendInput(binding.shortcut)
-    }
-    else
+HandleTopSingleClick(binding, hoveredWindow) {
+    processName := GetHoveredWindowProcess(hoveredWindow)
+    if IsVSCodeProcess(processName)
+        shortcut := binding.shortcut
+    else if IsWindowsTerminalProcess(processName)
+        shortcut := binding.terminalShortcut
+    else {
         ShowKeyPress(binding)
+        return
+    }
+    if ActivateHoveredWindow(hoveredWindow)
+        SendInput(shortcut)
 }
 
 RunVSCodeCommand(binding, hoveredWindow) {
@@ -108,7 +113,7 @@ HandleDialTurn(binding, hoveredWindow) {
         if ActivateHoveredWindow(hoveredWindow)
             SendInput(binding.direction = "left" ? "^-" : "^=")
     }
-    else if processName = "WindowsTerminal.exe" || processName = "WindowsTerminalPreview.exe" {
+    else if IsWindowsTerminalProcess(processName) {
         if ActivateHoveredWindow(hoveredWindow)
             SendInput(binding.direction = "left" ? "^{NumpadSub}" : "^{NumpadAdd}")
     }
@@ -124,6 +129,10 @@ GetHoveredWindowProcess(hoveredWindow) {
 
 IsVSCodeProcess(processName) {
     return processName = "Code.exe" || processName = "Code - Insiders.exe"
+}
+
+IsWindowsTerminalProcess(processName) {
+    return processName = "WindowsTerminal.exe" || processName = "WindowsTerminalPreview.exe"
 }
 
 ActivateHoveredWindow(hoveredWindow) {
